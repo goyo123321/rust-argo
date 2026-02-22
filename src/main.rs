@@ -43,13 +43,13 @@ async fn main() -> Result<()> {
     argo_type().await;
 
     // 启动代理服务器（Argo端口）
-    let proxy_handle = tokio::spawn(proxy::start_proxy_server());
+    let _proxy_handle = tokio::spawn(proxy::start_proxy_server());
 
     // 启动内部HTTP服务器
-    let http_handle = tokio::spawn(server::start_http_server());
+    let _http_handle = tokio::spawn(server::start_http_server());
 
     // 启动主流程（下载、运行子进程等）
-    let main_handle = tokio::spawn(start_main_process());
+    let _main_handle = tokio::spawn(start_main_process());
 
     // 信号处理
     shutdown_signal().await;
@@ -485,33 +485,36 @@ async fn run_cloudflared() {
 }
 
 async fn extract_domains() {
-    if !CONFIG.argo_auth.is_empty() && !CONFIG.argo_domain.is_empty() {
-        log_info!("使用固定域名: {}", CONFIG.argo_domain);
-        generate_links(&CONFIG.argo_domain).await;
-        return;
-    }
+    loop {
+        if !CONFIG.argo_auth.is_empty() && !CONFIG.argo_domain.is_empty() {
+            log_info!("使用固定域名: {}", CONFIG.argo_domain);
+            generate_links(&CONFIG.argo_domain).await;
+            return;
+        }
 
-    if let Ok(data) = tokio::fs::read_to_string(APP_FILES.boot_log()).await {
-        for line in data.lines() {
-            if line.contains("trycloudflare.com") {
-                if let Some(start) = line.find("https://").or_else(|| line.find("http://")) {
-                    let remaining = &line[start..];
-                    let end = remaining.find(' ').unwrap_or(remaining.len());
-                    let url = &remaining[..end];
-                    let domain = url
-                        .trim_start_matches("https://")
-                        .trim_start_matches("http://")
-                        .trim_end_matches('/');
-                    log_info!("找到临时域名: {}", domain);
-                    generate_links(domain).await;
-                    return;
+        if let Ok(data) = tokio::fs::read_to_string(APP_FILES.boot_log()).await {
+            for line in data.lines() {
+                if line.contains("trycloudflare.com") {
+                    if let Some(start) = line.find("https://").or_else(|| line.find("http://")) {
+                        let remaining = &line[start..];
+                        let end = remaining.find(' ').unwrap_or(remaining.len());
+                        let url = &remaining[..end];
+                        let domain = url
+                            .trim_start_matches("https://")
+                            .trim_start_matches("http://")
+                            .trim_end_matches('/');
+                        log_info!("找到临时域名: {}", domain);
+                        generate_links(domain).await;
+                        return;
+                    }
                 }
             }
         }
-    }
 
-    log_warn!("未找到域名，重新运行cloudflared");
-    restart_cloudflared().await;
+        log_warn!("未找到域名，重新运行cloudflared...");
+        restart_cloudflared().await;
+        sleep(Duration::from_secs(5)).await;
+    }
 }
 
 async fn restart_cloudflared() {
@@ -519,8 +522,6 @@ async fn restart_cloudflared() {
     sleep(Duration::from_secs(3)).await;
     let _ = tokio::fs::remove_file(APP_FILES.boot_log()).await;
     run_cloudflared().await;
-    sleep(Duration::from_secs(5)).await;
-    extract_domains().await;
 }
 
 async fn generate_links(domain: &str) {
