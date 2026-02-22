@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rust 语言介绍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Rust 主题色 */
+        .rust-bg {
+            background-color: #f74c00; /* Rust 橙 */
+        }
+
+        .rust-text {
+            color: #f74c00;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #2c2c2c;
+        }
+
+        .header h1 span {
+            color: #f74c00;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 1.5rem;
+        }
+
+        /* 特点网格 */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-top: 4px solid #f74c00;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(247, 76, 0, 0.1);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #f74c00;
+        }
+
+        .feature-card p {
+            color: #555;
+        }
+
+        /* 代码示例 */
+        .code-section {
+            background: #1e1e1e;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 3rem 0;
+            color: #d4d4d4;
+            overflow-x: auto;
+        }
+
+        .code-section h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .code-block {
+            font-family: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
+            font-size: 1rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .keyword { color: #569cd6; }
+        .function { color: #dcdcaa; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .macro { color: #d7ba7d; }
+
+        /* 资源链接 */
+        .resources {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 3rem 0;
+        }
+
+        .resource-link {
+            background: white;
+            border: 2px solid #f74c00;
+            color: #f74c00;
+            padding: 0.8rem 2rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .resource-link:hover {
+            background: #f74c00;
+            color: white;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            color: #888;
+        }
+
+        .footer a {
+            color: #f74c00;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部区域 -->
+        <header class="header">
+            <img src="https://rust-lang.org/logos/rust-logo-128x128-blk.png" alt="Rust Logo" class="logo">
+            <h1>🦀 <span>Rust</span> 编程语言</h1>
+            <p class="subtitle">
+                一种 empowering 所有人构建可靠且高效软件的语言。<br>
+                性能、并发、安全，三者兼得。
+            </p>
+        </header>
+
+        <!-- 特点卡片 -->
+        <div class="features">
+            <div class="feature-card">
+                <h3>⚡ 性能卓越</h3>
+                <p>零成本抽象、无垃圾回收，性能与 C/C++ 比肩。适合系统编程、嵌入式、游戏引擎等高性能场景。</p>
+            </div>
+            <div class="feature-card">
+                <h3>🔒 内存安全</h3>
+                <p>所有权系统、借用检查器在编译时杜绝空指针、数据竞争等内存错误，无需运行时开销。</p>
+            </div>
+            <div class="feature-card">
+                <h3>🚀 并发无畏</h3>
+                <p>无畏并发：所有权机制让数据竞争无处遁形，轻松编写安全的多线程代码。</p>
+            </div>
+            <div class="feature-card">
+                <h3>📦 丰富的生态</h3>
+                <p>通过 Cargo 包管理器，轻松使用 crates.io 上数以万计的库，覆盖 Web、网络、CLI 等各领域。</p>
+            </div>
+            <div class="feature-card">
+                <h3>🌍 跨平台</h3>
+                <p>支持 Windows、Linux、macOS、WebAssembly 等主流平台，一次编写，随处运行。</p>
+            </div>
+            <div class="feature-card">
+                <h3>🤝 社区友好</h3>
+                <p>活跃、热情、多元的社区，Rust 基金会推动语言持续发展，学习资源丰富。</p>
+            </div>
+        </div>
+
+        <!-- 代码示例 -->
+        <div class="code-section">
+            <h2>✨ 示例代码：猜数字游戏</h2>
+            <pre class="code-block"><span class="comment">// 使用 Rust 标准库和第三方库 rand</span>
+<span class="keyword">use</span> std::io;
+<span class="keyword">use</span> rand::Rng;
+
+<span class="function">fn main</span>() {
+    <span class="macro">println!</span>(<span class="string">"猜数字游戏！"</span>);
+
+    <span class="keyword">let</span> secret_number = rand::thread_rng().gen_range(1..=100);
+
+    <span class="keyword">loop</span> {
+        <span class="macro">println!</span>(<span class="string">"请输入你的猜测："</span>);
+
+        <span class="keyword">let</span> <span class="keyword">mut</span> guess = String::new();
+        io::stdin()
+            .read_line(&<span class="keyword">mut</span> guess)
+            .expect(<span class="string">"读取行失败"</span>);
+
+        <span class="keyword">let</span> guess: u32 = <span class="keyword">match</span> guess.trim().parse() {
+            Ok(num) => num,
+            Err(_) => <span class="keyword">continue</span>,
+        };
+
+        <span class="macro">println!</span>(<span class="string">"你猜的是：{}"</span>, guess);
+
+        <span class="keyword">match</span> guess.cmp(&secret_number) {
+            std::cmp::Ordering::Less => <span class="macro">println!</span>(<span class="string">"太小了！"</span>),
+            std::cmp::Ordering::Greater => <span class="macro">println!</span>(<span class="string">"太大了！"</span>),
+            std::cmp::Ordering::Equal => {
+                <span class="macro">println!</span>(<span class="string">"你赢了！"</span>);
+                <span class="keyword">break</span>;
+            }
+        }
+    }
+}</pre>
+        </div>
+
+        <!-- 常用资源 -->
+        <div class="resources">
+            <a href="https://www.rust-lang.org/zh-CN/" target="_blank" class="resource-link">官方网站</a>
+            <a href="https://doc.rust-lang.org/book/" target="_blank" class="resource-link">Rust 程序设计语言（中文版）</a>
+            <a href="https://crates.io" target="_blank" class="resource-link">crates.io 包仓库</a>
+            <a href="https://play.rust-lang.org" target="_blank" class="resource-link">在线 Playground</a>
+            <a href="https://rustcc.cn" target="_blank" class="resource-link">Rust 中文社区</a>
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>🦀 本项目由 Rust 强力驱动 · 介绍页面仅供展示</p>
+            <p>基于 <a href="https://axum.rs" target="_blank">Axum</a> 框架构建 · 部署于云端</p>
+        </footer>
+    </div>
+</body>
+</html>
