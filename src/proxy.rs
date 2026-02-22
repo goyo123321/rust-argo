@@ -5,7 +5,6 @@ use axum::{
     routing::{any, get},
     Router,
 };
-use hyper::upgrade::Upgraded;
 use hyper_util::rt::TokioIo;
 use serde_json::json;
 use std::net::SocketAddr;
@@ -31,20 +30,18 @@ pub async fn start_proxy_server() {
 }
 
 async fn handle_stats() -> impl IntoResponse {
-    let procs = {
-        let map = PROC_MGR.procs.lock().await;
-        let mut list = Vec::new();
-        for (name, proc) in map.iter() {
-            let pid = proc.child.as_ref().and_then(|c| c.id()).unwrap_or(0);
-            list.push(json!({
+    let processes = PROC_MGR.get_processes().await;
+    let procs: Vec<_> = processes
+        .into_iter()
+        .map(|(name, pid, running, restart)| {
+            json!({
                 "name": name,
                 "pid": pid,
-                "running": proc.child.is_some(),
-                "restart": proc.restart,
-            }));
-        }
-        list
-    };
+                "running": running,
+                "restart": restart,
+            })
+        })
+        .collect();
 
     let mem = json!({
         "alloc": "unknown",
@@ -111,7 +108,7 @@ async fn handle_websocket(req: Request<axum::body::Body>, target_port: &str) -> 
         });
 
         let mut upgraded = TokioIo::new(upgraded);
-        let mut target_stream = TokioIo::new(target_stream);
+        let mut target_stream = target_stream; // 直接使用 TcpStream，它实现了 tokio::io::AsyncRead/Write
 
         if let Err(e) = tokio::io::copy_bidirectional(&mut upgraded, &mut target_stream).await {
             error!("WebSocket 双向拷贝错误: {}", e);
