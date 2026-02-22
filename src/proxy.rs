@@ -157,7 +157,8 @@ async fn handle_http_proxy(req: Request<axum::body::Body>, target_port: &str) ->
             let status = StatusCode::from_u16(hyper_resp.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
             let mut builder = http::response::Builder::new().status(status);
             *builder.headers_mut().unwrap() = hyper_resp.headers().clone();
-            let body = axum::body::Body::from_stream(hyper_resp.into_body());
+            // 关键修复：使用 Body::new 而不是 from_stream
+            let body = axum::body::Body::new(hyper_resp.into_body());
             builder.body(body).unwrap()
         }
         Err(e) => {
