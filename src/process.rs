@@ -40,7 +40,6 @@ impl ProcessManager {
         let mut cmd = Command::new(&bin_path);
         cmd.args(&args);
         cmd.kill_on_drop(true);
-        // 继承标准输出/错误，便于调试
         cmd.stdout(std::process::Stdio::inherit());
         cmd.stderr(std::process::Stdio::inherit());
 
@@ -56,7 +55,6 @@ impl ProcessManager {
         };
         procs.insert(name.to_string(), proc);
 
-        // 启动监控任务
         let procs_clone = self.procs.clone();
         let name_clone = name.to_string();
         tokio::spawn(async move {
@@ -68,23 +66,19 @@ impl ProcessManager {
 
     async fn monitor_process(procs: Arc<Mutex<HashMap<String, ManagedProcess>>>, name: String) {
         loop {
-            // 获取进程的锁，并取出 child（如果有）
             let mut proc_guard = procs.lock().await;
             let proc = match proc_guard.get_mut(&name) {
                 Some(p) => p,
-                None => break, // 进程已被移除
+                None => break,
             };
 
-            // 如果 child 为 None，说明已在监控中（理论上不会），直接退出
             let mut child = match proc.child.take() {
                 Some(c) => c,
                 None => break,
             };
 
-            // 释放锁，避免在等待时阻塞其他操作
             drop(proc_guard);
 
-            // 等待进程退出
             let status = child.wait().await;
             match status {
                 Ok(exit) => {
@@ -99,19 +93,17 @@ impl ProcessManager {
                 }
             }
 
-            // 重新获取锁，检查是否需要重启
             let mut proc_guard = procs.lock().await;
             let proc = match proc_guard.get_mut(&name) {
                 Some(p) => p,
-                None => break, // 进程已被移除
+                None => break,
             };
 
             if proc.restart {
                 info!("进程 {} 将在5秒后重启", name);
-                drop(proc_guard); // 释放锁，避免 sleep 时持有
+                drop(proc_guard);
                 sleep(Duration::from_secs(5)).await;
 
-                // 再次获取锁，重新构造命令
                 let mut proc_guard = procs.lock().await;
                 let proc = match proc_guard.get_mut(&name) {
                     Some(p) => p,
@@ -128,18 +120,15 @@ impl ProcessManager {
                     Ok(new_child) => {
                         info!("进程 {} (PID {}) 重启成功", name, new_child.id().unwrap_or(0));
                         proc.child = Some(new_child);
-                        // 继续循环监控
                         continue;
                     }
                     Err(e) => {
                         error!("重启进程 {} 失败: {}", name, e);
-                        // 移除进程，避免无限重试
                         proc_guard.remove(&name);
                         break;
                     }
                 }
             } else {
-                // 不需要重启，移除进程
                 proc_guard.remove(&name);
                 break;
             }
@@ -151,7 +140,7 @@ impl ProcessManager {
         if let Some(mut proc) = map.remove(name) {
             if let Some(mut child) = proc.child.take() {
                 let _ = child.start_kill();
-                let _ = child.wait().await; // 等待退出
+                let _ = child.wait().await;
             }
         }
     }
@@ -164,5 +153,16 @@ impl ProcessManager {
         for name in names {
             self.stop(&name).await;
         }
+    }
+
+    /// 获取当前所有进程的快照信息 (name, pid, running, restart)
+    pub async fn get_processes(&self) -> Vec<(String, u32, bool, bool)> {
+        let map = self.procs.lock().await;
+        map.iter()
+            .map(|(name, proc)| {
+                let pid = proc.child.as_ref().and_then(|c| c.id()).unwrap_or(0);
+                (name.clone(), pid, proc.child.is_some(), proc.restart)
+            })
+            .collect()
     }
 }
