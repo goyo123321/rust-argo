@@ -45,7 +45,7 @@ async fn index_handler(req: Request<axum::body::Body>) -> impl IntoResponse {
         }
         "Hello world!".into_response()
     } else {
-        let serve_dir = ServeDir::new(".");
+        let mut serve_dir = ServeDir::new(".");
         match serve_dir.try_call(req).await {
             Ok(resp) => resp.into_response(),
             Err(_) => (StatusCode::NOT_FOUND, "Not Found").into_response(),
