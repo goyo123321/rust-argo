@@ -12,7 +12,7 @@ use crate::util::{get_architecture, AppFiles, download_with_limit, get_isp, is_p
 use anyhow::Result;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde_json::json;
-use std::sync::atomic::{AtomicI64, Ordering};
+use std::sync::atomic::{AtomicI64};
 use std::sync::Arc;
 use tokio::signal;
 use tokio::time::{sleep, Duration};
