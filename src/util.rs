@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::io::AsyncWriteExt;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, Semaphore};
 use tracing::{error, info};
 
 pub struct AppFiles {
@@ -94,11 +94,11 @@ pub async fn download_file(url: &str, dest: &str) -> Result<()> {
 }
 
 pub async fn download_with_limit(items: Vec<(String, String, String)>, limit: usize) {
-    let semaphore = tokio::sync::Semaphore::new(limit);
+    let semaphore = Arc::new(Semaphore::new(limit));
     let mut handles = vec![];
 
     for (name, path, url) in items {
-        let permit = semaphore.acquire_owned().await.unwrap();
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
         handles.push(tokio::spawn(async move {
             let _permit = permit;
             match download_file(&url, &path).await {
