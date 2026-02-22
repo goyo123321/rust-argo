@@ -153,9 +153,9 @@ async fn handle_http_proxy(req: Request<axum::body::Body>, target_port: &str) ->
 
     match client.request(hyper_req).await {
         Ok(hyper_resp) => {
-            // 使用 http::Response::builder() 显式指定类型
-            let mut builder = http::response::Builder::new()
-                .status(hyper_resp.status());
+            // 使用显式类型构建响应
+            let status = StatusCode::from_u16(hyper_resp.status().as_u16()).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
+            let mut builder = http::response::Builder::new().status(status);
             *builder.headers_mut().unwrap() = hyper_resp.headers().clone();
             let body = axum::body::Body::from_stream(hyper_resp.into_body());
             builder.body(body).unwrap()
