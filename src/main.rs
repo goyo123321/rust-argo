@@ -15,7 +15,6 @@ use serde_json::json;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 use tokio::signal;
-use tokio::sync::RwLock;
 use tokio::time::{sleep, Duration};
 
 lazy_static::lazy_static! {
