@@ -5,6 +5,7 @@ use axum::{
     routing::get,
     Router,
 };
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use std::net::SocketAddr;
 use tower_http::services::ServeDir;
 use tracing::info;
@@ -27,14 +28,12 @@ pub async fn start_http_server() {
 
 async fn subscription_handler() -> String {
     let sub = SUBSCRIPTION.read().await;
-    base64::encode(sub.as_bytes())
+    BASE64.encode(sub.as_bytes())
 }
 
 async fn index_handler(req: Request<axum::body::Body>) -> impl IntoResponse {
     let path = req.uri().path();
-    // 尝试提供静态文件
     if path == "/" {
-        // 尝试 index.html
         if let Ok(content) = tokio::fs::read_to_string("index.html").await {
             return Html(content).into_response();
         }
@@ -46,7 +45,6 @@ async fn index_handler(req: Request<axum::body::Body>) -> impl IntoResponse {
         }
         "Hello world!".into_response()
     } else {
-        // 简单的静态文件服务
         let serve_dir = ServeDir::new(".");
         match serve_dir.try_call(req).await {
             Ok(resp) => resp.into_response(),
